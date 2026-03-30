@@ -1,6 +1,7 @@
 const dao = require('../dao/authDAO');
 const bcrypt = require('../utils/bcryptUtil');
 
+
 exports.register = async (email, password) => {
   const hashed = await bcrypt.hash(password);
   await dao.createUser(email, hashed);

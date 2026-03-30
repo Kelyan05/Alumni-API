@@ -1,5 +1,7 @@
 const db = require('../config/database');
 
+
+//Creating user
 exports.createUser = async (email, password) => {
   await db.query('INSERT INTO users (email, password) VALUES (?,?)', [email, password]);
 };
