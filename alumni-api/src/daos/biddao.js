@@ -2,16 +2,13 @@ const connection = require('../database/dbconfig');
 const createResponse = require('../utils/response');
 
 class biddao {
-
   create(alumniID, amount) {
     return new Promise(resolve => {
       connection.run(
-        `INSERT INTO bids (alumniID, amount) VALUES (?, ?)`,
+        `INSERT INTO bids (alumniID,amount) VALUES (?,?)`,
         [alumniID, amount],
         function (err) {
-          if (err)
-            return resolve(createResponse(false, null, null, 'Database error'));
-
+          if (err) return resolve(createResponse(false, null, 'Database error'));
           resolve(createResponse(true, { bidId: this.lastID }));
         }
       );
@@ -21,15 +18,12 @@ class biddao {
   updateBid(alumniID, amount) {
     return new Promise(resolve => {
       connection.run(
-        `UPDATE bids SET amount = ? WHERE alumniID = ? AND amount < ?`,
+        `UPDATE bids SET amount=? WHERE alumniID=? AND amount < ?`,
         [amount, alumniID, amount],
         function (err) {
-          if (err)
-            return resolve(createResponse(false, null, null, 'Database error'));
-
+          if (err) return resolve(createResponse(false, null, 'Database error'));
           if (this.changes === 0)
-            return resolve(createResponse(false, null, null, 'Must increase bid'));
-
+            return resolve(createResponse(false, null, 'Must increase bid'));
           resolve(createResponse(true));
         }
       );
@@ -38,38 +32,24 @@ class biddao {
 
   getHighestBid() {
     return new Promise(resolve => {
-      connection.get(
-        `SELECT MAX(amount) as highest FROM bids`,
-        [],
-        (err, row) => {
-          if (err)
-            return resolve(createResponse(false, null, null, 'Database error'));
-
-          resolve(createResponse(true, row?.highest || 0));
-        }
-      );
+      connection.get(`SELECT MAX(amount) as highest FROM bids`, [], (err, row) => {
+        resolve(createResponse(true, row.highest || 0));
+      });
     });
   }
 
   getWinner() {
     return new Promise(resolve => {
       connection.get(
-        `
-        SELECT b.alumniID 
-        FROM bids b
-        JOIN alumni a ON b.alumniID = a.id
-        WHERE a.thisMonthAppearanceCount < 3
-        ORDER BY b.amount DESC 
-        LIMIT 1
-        `,
+        `SELECT b.alumniID 
+         FROM bids b 
+         JOIN alumni a ON b.alumniID = a.id 
+         WHERE a.thisMonthAppearanceCount < 3 
+         ORDER BY b.amount DESC 
+         LIMIT 1`,
         [],
         (err, row) => {
-          if (err)
-            return resolve(createResponse(false, null, null, 'Database error'));
-
-          if (!row)
-            return resolve(createResponse(false, null, null, 'No valid bids'));
-
+          if (!row) return resolve(createResponse(false, null, 'No bids'));
           resolve(createResponse(true, row));
         }
       );
@@ -79,13 +59,10 @@ class biddao {
   getUserHighestBid(alumniID) {
     return new Promise(resolve => {
       connection.get(
-        `SELECT MAX(amount) as highest FROM bids WHERE alumniID = ?`,
+        `SELECT MAX(amount) as highest FROM bids WHERE alumniID=?`,
         [alumniID],
         (err, row) => {
-          if (err)
-            return resolve(createResponse(false, null, null, 'Database error'));
-
-          resolve(createResponse(true, row?.highest || 0));
+          resolve(createResponse(true, row.highest || 0));
         }
       );
     });
