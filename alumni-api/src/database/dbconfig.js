@@ -1,12 +1,13 @@
-const db = require('sqlite3')
-const connection = new db.Database('./alumni.db', (err) =>{
-    if(err){
-        console.error(err)
-    }
-    else{
-        console.log('Alumni DB connection Success')
-    }
-})
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+const dbPath = path.resolve(__dirname, 'alumni.db');
+const connection = new sqlite3.Database(dbPath, err => {
+  if (err) console.error(err);
+  else console.log('Connected to SQLite DB');
+});
+
+module.exports = connection;
 //User Table
 const createAlumniTable = () =>{
     connection.run(`

@@ -1,6 +1,5 @@
 require('dotenv').config()
 const express = require('express')
-const cookieParser = require('cookie-parser')
 const app = express()
 const PORT = process.env.PORT || 3000
 const swaggerJsDoc = require('swagger-jsdoc');
@@ -15,6 +14,8 @@ const swaggerOptions = {
   apis: ['./routes/*.js']
 };
 
+
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsDoc(swaggerOptions)));
 // Routers
 const alumnirouter = require('./routes/alumnirouter')
@@ -25,7 +26,6 @@ const developerRouter = require('./routes/developerRouter')
 // Middleware
 app.use(express.json())
 app.use(express.static('public'))
-app.use(cookieParser())
 
 // Routes
 app.use('/alumni', alumnirouter)

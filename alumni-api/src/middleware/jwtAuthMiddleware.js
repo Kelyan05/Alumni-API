@@ -1,4 +1,4 @@
-const bearerTokens = require('../shared-utils/bearerTokens')
+const bearerTokens = require('../utils/bearerTokens')
 
 module.exports = (req,res,next) => {
     const authHeader = req.headers['authorization'] || req.cookies['jwt-token']
