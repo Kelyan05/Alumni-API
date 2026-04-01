@@ -8,30 +8,39 @@ class bidservice {
     this.alumniDao = new alumnidao();
   }
 
+  // Place a new bid
   async create(req) {
-    const alumni = await this.alumniDao.getAlumniByUserId(req.user.id);
     const { amount } = req.body;
+    const alumniID = req.user.id;
 
-    if (amount <= 0) return createResponse(false, null, null, 'Invalid amount');
+    // Check if user has an existing highest bid
+    const currentBid = await this.dao.getUserHighestBid(alumniID);
 
-    return await this.dao.create(alumni.data.id, amount);
+    if (amount <= currentBid.data) {
+      return createResponse(false, null, 'New bid must be higher than current bid');
+    }
+
+    // Either insert or update the bid
+    if (currentBid.data === 0) {
+      return await this.dao.create(alumniID, amount);
+    } else {
+      return await this.dao.updateBid(alumniID, amount);
+    }
   }
 
-  async update(req) {
-    const alumni = await this.alumniDao.getAlumniByUserId(req.user.id);
-    return await this.dao.updateBid(alumni.data.id, req.body.amount);
-  }
-
+  // Get the status of the user's bid (Winning / Losing)
   async getStatus(req) {
-    const alumni = await this.alumniDao.getAlumniByUserId(req.user.id);
+    const alumniID = req.user.id;
 
-    const highest = await this.dao.getHighestBid();
-    const userHighest = await this.dao.getUserHighestBid(alumni.data.id);
+    const highestBid = await this.dao.getHighestBid();
+    const userBid = await this.dao.getUserHighestBid(alumniID);
 
-    if (userHighest.data >= highest.data)
-      return createResponse(true, { status: 'Winning' });
+    if (!highestBid.success || !userBid.success) {
+      return createResponse(false, null, 'Error fetching bid status');
+    }
 
-    return createResponse(true, { status: 'Losing' });
+    const status = userBid.data === highestBid.data ? 'Winning' : 'Losing';
+    return createResponse(true, { status, yourBid: userBid.data, highestBid: highestBid.data });
   }
 }
 

@@ -2,14 +2,13 @@ const connection = require('../database/dbconfig');
 const createResponse = require('../utils/response');
 
 class alumnidao {
-
   createUser(email, hashedPassword) {
     return new Promise(resolve => {
       connection.run(
         `INSERT INTO users (email,password) VALUES (?,?)`,
         [email, hashedPassword],
         function (err) {
-          if (err) return resolve(createResponse(false, null, null, 'User exists'));
+          if (err) return resolve(createResponse(false, null, 'User exists'));
           resolve(createResponse(true, { userId: this.lastID }));
         }
       );
@@ -22,7 +21,7 @@ class alumnidao {
         `INSERT INTO alumni (userId) VALUES (?)`,
         [userId],
         function (err) {
-          if (err) return resolve(createResponse(false, null, null, 'Database error'));
+          if (err) return resolve(createResponse(false, null, 'Database error'));
           resolve(createResponse(true, { alumniId: this.lastID }));
         }
       );
@@ -35,7 +34,7 @@ class alumnidao {
         `SELECT * FROM users WHERE email=?`,
         [email],
         (err, row) => {
-          if (err || !row) return resolve(createResponse(false, null));
+          if (err || !row) return resolve(createResponse(false, null, 'User not found'));
           resolve(createResponse(true, row));
         }
       );
@@ -48,7 +47,7 @@ class alumnidao {
         `SELECT * FROM alumni WHERE userId=?`,
         [userId],
         (err, row) => {
-          if (err || !row) return resolve(createResponse(false, null));
+          if (err || !row) return resolve(createResponse(false, null, 'Alumni not found'));
           resolve(createResponse(true, row));
         }
       );
@@ -61,7 +60,7 @@ class alumnidao {
         `UPDATE alumni SET linkedinUrl=?, profilePic=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?`,
         [data.linkedinUrl, data.profilePic, id],
         err => {
-          if (err) return resolve(createResponse(false, null, null, 'Database error'));
+          if (err) return resolve(createResponse(false, null, 'Database error'));
           resolve(createResponse(true, data));
         }
       );
@@ -71,7 +70,6 @@ class alumnidao {
   getFeatured() {
     return new Promise(resolve => {
       connection.get(`SELECT * FROM alumni WHERE isFeatured=1`, [], (err, row) => {
-        if (err) return resolve(createResponse(false, null, null, 'Database error'));
         resolve(createResponse(true, row));
       });
     });
@@ -86,11 +84,12 @@ class alumnidao {
   }
 
   incrementAppearance(id) {
-    connection.run(`
-      UPDATE alumni 
-      SET thisMonthAppearanceCount = thisMonthAppearanceCount + 1 
-      WHERE id=? AND thisMonthAppearanceCount < 3
-    `, [id]);
+    connection.run(
+      `UPDATE alumni 
+       SET thisMonthAppearanceCount = thisMonthAppearanceCount + 1 
+       WHERE id=? AND thisMonthAppearanceCount < 3`,
+      [id]
+    );
   }
 }
 
