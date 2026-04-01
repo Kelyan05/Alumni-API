@@ -147,7 +147,7 @@ ar-alumni-backend/
 ├─ services/
 ├─ routes/
 ├─ middleware/
-├─ shared-utils/
+├─ utils/
 ├─ public/
 │
 ├─ index.js
