@@ -5,6 +5,8 @@ const bearerTokens = require('../utils/bearerTokens');
 const createResponse = require('../utils/response');
 const { validateEmailDomain } = require('../middleware/inputValidation');
 
+const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
+
 class alumniservice {
   constructor() {
     this.dao = new alumnidao();
@@ -21,7 +23,7 @@ class alumniservice {
     if (existing.success)
       return createResponse(false, null, null, 'User already exists');
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, saltRounds);
 
     const user = await this.dao.createUser(email, hashed);
     if (!user.success) return user;
@@ -35,10 +37,12 @@ class alumniservice {
     const { email, password } = req.body;
 
     const user = await this.dao.getUserByEmail(email);
-    if (!user.success) return createResponse(false, null, null, 'Invalid credentials');
+    if (!user.success)
+      return createResponse(false, null, null, 'Invalid credentials');
 
     const match = await bcrypt.compare(password, user.data.password);
-    if (!match) return createResponse(false, null, null, 'Invalid credentials');
+    if (!match)
+      return createResponse(false, null, null, 'Invalid credentials');
 
     const token = bearerTokens.generateToken({
       id: user.data.id,
@@ -53,11 +57,12 @@ class alumniservice {
     if (featured.data) return featured;
 
     const winner = await this.biddao.getWinner();
-    if (!winner.success) return createResponse(false, null, null, 'No bids');
+    if (!winner.success)
+      return createResponse(false, null, null, 'No bids');
 
-    this.dao.resetFeatured();
-    this.dao.setWinner(winner.data.alumniID);
-    this.dao.incrementAppearance(winner.data.alumniID);
+    await this.dao.resetFeatured();
+    await this.dao.setWinner(winner.data.alumniID);
+    await this.dao.incrementAppearance(winner.data.alumniID);
 
     return await this.dao.getFeatured();
   }
