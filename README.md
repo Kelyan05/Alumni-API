@@ -337,8 +337,8 @@ This backend system demonstrates:
 
 ## 👨‍💻 Author
 
-Student Name: *[Your Name]*
-Module: *[Module Name]*
-University: *[Your University]*
+Student Name: *Kelyan Djomo*
+Module: *Advanced Server-Side Web Programming*
+University: *University of Westminster*
 
 ---
