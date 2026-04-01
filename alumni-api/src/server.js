@@ -1,36 +1,40 @@
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const helmet = require('helmet');
-const cors = require('cors');
+require('dotenv').config()
+const express = require('express')
+const cookieParser = require('cookie-parser')
+const app = express()
+const PORT = process.env.PORT || 3000
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
-const app = express();
-const cron = require('node-cron');
-const db = require('./src/config/database');
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.1',
+    info: { title: 'Alumni API', version: '1.0', description: 'Coursework Backend' },
+    servers: [{ url: 'http://localhost:3000' }]
+  },
+  apis: ['./routes/*.js']
+};
 
-cron.schedule('0 18 * * *', async () => {
-  const [rows] = await db.query(
-    'SELECT * FROM bids WHERE bid_date = CURDATE() ORDER BY amount DESC LIMIT 1'
-  );
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsDoc(swaggerOptions)));
+// Routers
+const alumnirouter = require('./routes/alumnirouter')
+const bidrouter = require('./routes/bidrouter')
+const uirouter = require('./routes/uirouter')
+const developerRouter = require('./routes/developerRouter')
 
-  if (rows[0]) {
-    await db.query('UPDATE bids SET status="won" WHERE id=?', [rows[0].id]);
-  }
-});
+// Middleware
+app.use(express.json())
+app.use(express.static('public'))
+app.use(cookieParser())
 
-app.use(express.json());
-app.use(helmet());
-app.use(cors());
+// Routes
+app.use('/alumni', alumnirouter)
+app.use('/bid', bidrouter)
+app.use('/ui', uirouter)
+app.use('/developer', developerRouter)
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
 
-app.use('/api/auth', require('./src/routes/authRoutes'));
-app.use('/api/bids', require('./src/routes/bidRoutes'));
 
-app.listen(process.env.PORT, () => {
-  console.log("Server running");
-});
+app.listen(PORT, () => {
+    console.log(`Alumni Service running on PORT ${PORT}`)
+})
