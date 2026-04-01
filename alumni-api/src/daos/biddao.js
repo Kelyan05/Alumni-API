@@ -1,5 +1,5 @@
 const connection = require('../database/dbconfig')
-const createResponse = require('../../utils/response')
+const createResponse = require('../utils/response')
 
 class biddao{
     async create(alumniID,amount){

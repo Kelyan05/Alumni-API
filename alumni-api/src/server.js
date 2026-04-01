@@ -20,8 +20,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsDoc(swaggerOption
 // Routers
 const alumnirouter = require('./routes/alumnirouter')
 const bidrouter = require('./routes/bidrouter')
-const uirouter = require('./routes/uirouter')
-const developerRouter = require('./routes/developerRouter')
 
 // Middleware
 app.use(express.json())
@@ -30,10 +28,6 @@ app.use(express.static('public'))
 // Routes
 app.use('/alumni', alumnirouter)
 app.use('/bid', bidrouter)
-app.use('/ui', uirouter)
-app.use('/developer', developerRouter)
-
-
 
 app.listen(PORT, () => {
     console.log(`Alumni Service running on PORT ${PORT}`)

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const bidservice = require('../services/bidservice')
+const bidservice = require('../services/bidService')
 const jwtAuthMiddleware = require('../middleware/jwtAuthMiddleware')
 const service = new bidservice()
 

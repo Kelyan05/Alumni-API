@@ -1,5 +1,5 @@
 const biddao = require('../daos/biddao')
-const createResponse = require('../../utils/response')
+const createResponse = require('../utils/response')
 
 class bidservice{
     constructor(){ this.dao = new biddao() }
