@@ -8,7 +8,7 @@ const connection = new sqlite3.Database(dbPath, err => {
   else console.log('Connected to SQLite DB');
 });
 
-// USERS (auth)
+// users table 
 connection.run(`
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 )`);
 
-// ALUMNI (profile)
+// alumni profile table
 connection.run(`
 CREATE TABLE IF NOT EXISTS alumni (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS alumni (
   FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 )`);
 
-// BIDS
+// bid table
 connection.run(`
 CREATE TABLE IF NOT EXISTS bids (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

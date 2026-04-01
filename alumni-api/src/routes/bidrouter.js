@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bidservice = require('../services/bidservice');
 const jwtAuthMiddleware = require('../middleware/jwtAuthMiddleware');
+
 const service = new bidservice();
 
 /**
@@ -9,7 +10,7 @@ const service = new bidservice();
  * /bid/makebid:
  *   post:
  *     summary: Place a blind bid
- *     description: Allows users to place a bid without seeing other bids
+ *     description: Alumni place a blind bid; cannot see others' bids
  *     tags: [Bidding]
  *     security:
  *       - bearerAuth: []
@@ -18,25 +19,24 @@ const service = new bidservice();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BidRequest'
+ *             $ref: '#/components/schemas/MakeBidRequest'
  *     responses:
  *       200:
  *         description: Bid placed successfully
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
  *               data:
  *                 bidId: 1
  *       400:
- *         description: Invalid bid amount
+ *         description: Invalid bid
  *         content:
  *           application/json:
- *             example:
- *               success: false
- *               error: "Invalid amount"
- *       401:
- *         description: Unauthorized
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/makebid', jwtAuthMiddleware, async (req, res) => {
   const result = await service.create(req);
@@ -45,63 +45,29 @@ router.post('/makebid', jwtAuthMiddleware, async (req, res) => {
 
 /**
  * @swagger
- * /bid/update:
- *   put:
- *     summary: Update existing bid (increase only)
- *     description: Users can only increase their current bid amount
- *     tags: [Bidding]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BidRequest'
- *     responses:
- *       200:
- *         description: Bid updated successfully
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               data:
- *                 message: "Bid updated"
- *       400:
- *         description: New bid must be higher than previous
- *         content:
- *           application/json:
- *             example:
- *               success: false
- *               error: "Must increase bid"
- *       401:
- *         description: Unauthorized
- */
-router.put('/update', jwtAuthMiddleware, async (req, res) => {
-  const result = await service.update(req);
-  res.json(result);
-});
-
-/**
- * @swagger
  * /bid/status:
  *   get:
  *     summary: Get bid status
- *     description: Returns whether the user is currently winning or losing
+ *     description: Shows if the current user's bid is winning or losing
  *     tags: [Bidding]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Status retrieved
+ *         description: Bid status retrieved
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
- *               data:
- *                 status: "Winning"
- *       401:
- *         description: Unauthorized
+ *               data: "Winning"
+ *       404:
+ *         description: No bids
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/status', jwtAuthMiddleware, async (req, res) => {
   const result = await service.getStatus(req);

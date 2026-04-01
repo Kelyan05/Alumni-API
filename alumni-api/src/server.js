@@ -1,10 +1,12 @@
-require('dotenv').config()
-const express = require('express')
-const app = express()
-const PORT = process.env.PORT || 3000
+require('dotenv').config();
+const express = require('express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+//swagger setup
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.1',
@@ -14,7 +16,7 @@ const swaggerOptions = {
       description: 'Blind bidding system for alumni spotlight'
     },
     servers: [
-      { url: 'http://localhost:3000' }
+      { url: `http://localhost:${PORT}` }
     ],
     components: {
       securitySchemes: {
@@ -27,6 +29,7 @@ const swaggerOptions = {
       schemas: {
         RegisterRequest: {
           type: 'object',
+          required: ['email', 'password'],
           properties: {
             email: { type: 'string', example: 'student@university.ac.uk' },
             password: { type: 'string', example: 'Password123!' }
@@ -34,13 +37,15 @@ const swaggerOptions = {
         },
         LoginRequest: {
           type: 'object',
+          required: ['email', 'password'],
           properties: {
-            email: { type: 'string' },
-            password: { type: 'string' }
+            email: { type: 'string', example: 'student@university.ac.uk' },
+            password: { type: 'string', example: 'Password123!' }
           }
         },
-        BidRequest: {
+        MakeBidRequest: {
           type: 'object',
+          required: ['amount'],
           properties: {
             amount: { type: 'number', example: 100 }
           }
@@ -48,8 +53,8 @@ const swaggerOptions = {
         ProfileRequest: {
           type: 'object',
           properties: {
-            linkedinUrl: { type: 'string' },
-            profilePic: { type: 'string' }
+            linkedinUrl: { type: 'string', example: 'https://linkedin.com/in/user' },
+            profilePic: { type: 'string', example: 'https://image-url.com/pic.jpg' }
           }
         },
         SuccessResponse: {
@@ -63,7 +68,7 @@ const swaggerOptions = {
           type: 'object',
           properties: {
             success: { type: 'boolean', example: false },
-            error: { type: 'string' }
+            error: { type: 'string', example: 'Error message' }
           }
         }
       }
@@ -72,20 +77,28 @@ const swaggerOptions = {
   apis: ['./routes/*.js']
 };
 
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsDoc(swaggerOptions)));
-// Routers
-const alumnirouter = require('./routes/alumnirouter')
-const bidrouter = require('./routes/bidrouter')
 
-// Middleware
-app.use(express.json())
-app.use(express.static('public'))
+//middleware
+app.use(express.json());
+app.use(express.static('public'));
 
-// Routes
-app.use('/alumni', alumnirouter)
-app.use('/bid', bidrouter)
+//routes
+const alumnirouter = require('./routes/alumnirouter');
+const bidrouter = require('./routes/bidrouter');
 
+app.use('/alumni', alumnirouter);
+app.use('/bid', bidrouter);
+
+
+//global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, error: 'Internal Server Error' });
+});
+
+//starts server
 app.listen(PORT, () => {
-    console.log(`Alumni Service running on PORT ${PORT}`)
-})
+  console.log(`Alumni Service running on PORT ${PORT}`);
+  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`); //bonus message log for easy access to docs
+});

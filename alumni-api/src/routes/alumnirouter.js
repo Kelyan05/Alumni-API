@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const alumniservice = require('../services/alumniservice');
 const jwtAuthMiddleware = require('../middleware/jwtAuthMiddleware');
+
 const service = new alumniservice();
 
 /**
@@ -22,6 +23,8 @@ const service = new alumniservice();
  *         description: Registration successful
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
  *               data:
@@ -30,9 +33,8 @@ const service = new alumniservice();
  *         description: Invalid email or user already exists
  *         content:
  *           application/json:
- *             example:
- *               success: false
- *               error: "Invalid university email"
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/register', async (req, res) => {
   const result = await service.register(req);
@@ -44,7 +46,7 @@ router.post('/register', async (req, res) => {
  * /alumni/login:
  *   post:
  *     summary: Login user
- *     description: Authenticates user and returns JWT tokens
+ *     description: Authenticates user and returns JWT token
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -57,13 +59,18 @@ router.post('/register', async (req, res) => {
  *         description: Login successful
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
  *               data:
  *                 accessToken: "jwt_token_here"
- *                 refreshToken: "refresh_token_here"
  *       401:
  *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', async (req, res) => {
   const result = await service.login(req);
@@ -90,6 +97,8 @@ router.post('/login', async (req, res) => {
  *         description: Profile updated successfully
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
  *               data:
@@ -97,6 +106,10 @@ router.post('/login', async (req, res) => {
  *                 profilePic: "https://image-url.com/pic.jpg"
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/profile', jwtAuthMiddleware, async (req, res) => {
   const result = await service.updateProfile(req);
@@ -108,13 +121,15 @@ router.put('/profile', jwtAuthMiddleware, async (req, res) => {
  * /alumni/today:
  *   get:
  *     summary: Get today's featured alumni
- *     description: Returns the highest bidder as the featured alumni of the day (blind bidding system)
+ *     description: Returns the highest bidder as the featured alumni of the day
  *     tags: [Alumni]
  *     responses:
  *       200:
  *         description: Featured alumni retrieved
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *             example:
  *               success: true
  *               data:
@@ -125,6 +140,8 @@ router.put('/profile', jwtAuthMiddleware, async (req, res) => {
  *         description: No bids available
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
  *               success: false
  *               error: "No bids"

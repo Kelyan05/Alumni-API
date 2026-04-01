@@ -71,6 +71,7 @@ class alumnidao {
   getFeatured() {
     return new Promise(resolve => {
       connection.get(`SELECT * FROM alumni WHERE isFeatured=1`, [], (err, row) => {
+        if (err) return resolve(createResponse(false, null, null, 'Database error'));
         resolve(createResponse(true, row));
       });
     });
