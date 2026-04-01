@@ -2,15 +2,14 @@
 
 ## 📌 Overview
 
-This project is a backend system for an **Alumni Bidding Platform**, where alumni can register, manage their professional profiles, and participate in a **blind bidding system** to be featured as the *Alumni of the Day*.
+This project is a backend system for an **Alumni Bidding Platform**, where users can register, manage their alumni profiles, and participate in a **blind bidding system** to be featured as the *Alumni of the Day*.
 
-The system is designed with a strong focus on:
+The system focuses on:
 
-* Security (JWT, bcrypt, validation)
-* Clean architecture (Layered + DAO pattern)
-* Blind bidding fairness
-* Developer accessibility via a public API
-* Full Swagger documentation
+* Secure authentication using JWT
+* Clean layered architecture
+* Fair blind bidding logic
+* Fully documented REST API using Swagger
 
 ---
 
@@ -39,11 +38,8 @@ Database (SQLite)
 #### 1. Router Layer (`/routes`)
 
 * Handles HTTP requests and responses
-* Connects endpoints to services
-* Example endpoints:
-
-  * `/alumni/register`
-  * `/bid/makebid`
+* Defines API endpoints
+* Connects requests to service layer
 
 #### 2. Service Layer (`/services`)
 
@@ -51,89 +47,80 @@ Database (SQLite)
 
   * Authentication (JWT + bcrypt)
   * Blind bidding logic
-  * Monthly limit enforcement
-  * Alumni of the Day selection
+  * Alumni selection logic
 
 #### 3. DAO Layer (`/daos`)
 
-* Handles all database operations
+* Handles all database interactions
 * No business logic
 * Ensures clean separation
 
 #### 4. Middleware (`/middleware`)
 
-* JWT authentication
-* Input validation
-* Security enforcement
+* JWT authentication middleware
+* Protects secured routes
 
-#### 5. Shared Utilities (`/shared-utils`)
+#### 5. Utilities (`/utils`)
 
 * Token generation
-* Standard API response formatting
+* Helper functions
 
 ---
 
 ## 🔐 Security Features
 
-* **Password Hashing** using bcrypt
-* **JWT Authentication** with expiry
-* **Email domain restriction** (university emails only)
-* **Input validation & sanitization**
-* **Blind bidding logic** (no bid visibility)
-* **API key management with revocation**
-* Secure token-based password reset
+* **Password hashing** using bcrypt
+* **JWT authentication** with expiry
+* **University email restriction** (controlled via `.env`)
+* Protected routes using middleware
 
 ---
 
 ## 🚀 Features
 
-### 1. Alumni Registration & Authentication
+### 1. Authentication
 
-* Email-based registration (university domain only)
-* Email verification system (token-based)
-* Secure login/logout
-* Password reset functionality
+* Register using university email only
+* Secure login system
+* JWT-based authentication
 
 ---
 
 ### 2. Alumni Profile Management
 
-* Personal profile details
-* LinkedIn URL
-* Degrees (with URLs & completion dates)
-* Certifications (with URLs & dates)
-* Licenses (with URLs & dates)
-* Short courses (with URLs & dates)
-* Employment history
-* Profile image upload
-* Edit/update functionality
+* Update profile information
+* Store LinkedIn URL
+* Store profile image
 
 ---
 
 ### 3. Blind Bidding System
 
-* Place bids without seeing others
-* Increase-only bid updates
-* Status feedback: **Winning / Losing**
-* Monthly limit: max 3 wins per alumnus
-* Automatic winner selection when retrieving featured alumnus
+* Users place bids without seeing others
+* Users can only increase their bids
+* System determines highest bidder
+* Users see only:
+
+  * **Winning**
+  * **Losing**
 
 ---
 
-### 4. Security & API Access
+## 💰 Blind Bidding Logic
 
-* JWT-based authentication
-* API key system for developers
-* Usage tracking (request counts, timestamps)
-* Ability to revoke API keys
+* All bids are stored securely in the database
+* No user can view other bids
+* The highest bid is determined internally
+* The winner is selected when requesting `/alumni/today`
+* This ensures fairness and prevents bid manipulation
 
 ---
 
-### 5. Public Developer API
+## 📊 Monthly Feature Limit
 
-* Get "Alumni of the Day"
-* Secure access via API keys
-* Fully documented using Swagger
+* Each alumnus can be featured a maximum of **3 times per month**
+* Tracked using `thisMonthAppearanceCount`
+* Users exceeding this limit are excluded from winning
 
 ---
 
@@ -142,13 +129,12 @@ Database (SQLite)
 ```
 ar-alumni-backend/
 │
-├─ database/
 ├─ daos/
 ├─ services/
 ├─ routes/
 ├─ middleware/
 ├─ utils/
-├─ public/
+├─ database/
 │
 ├─ index.js
 ├─ package.json
@@ -169,74 +155,60 @@ PORT=3000
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRY=1d
 
-REFRESH_SECRET=your_refresh_secret
-REFRESH_EXPIRY=7d
-
-EMAIL_DOMAIN=@university.edu
+EMAIL_DOMAIN=@westminster.ac.uk
 
 SALT_ROUNDS=10
-
-API_KEY_LENGTH=32
 ```
 
 ### 🔹 Explanation
 
 * `JWT_SECRET` → Signs authentication tokens
-* `EMAIL_DOMAIN` → Restricts registration
+* `EMAIL_DOMAIN` → Restricts registration to university emails
 * `SALT_ROUNDS` → Controls password hashing strength
-* `API_KEY_LENGTH` → Length of generated API keys
 
 ---
 
 ## 🗄️ Database Schema
 
+### Users Table
+
+| Field    | Description     |
+| -------- | --------------- |
+| id       | Primary key     |
+| email    | Unique login    |
+| password | Hashed password |
+
+---
+
 ### Alumni Table
 
-| Field           | Description               |
-| --------------- | ------------------------- |
-| id              | Primary key               |
-| email           | Unique login              |
-| password        | Hashed password           |
-| isVerified      | Email verification status |
-| isFeatured      | Alumni of the Day         |
-| appearanceCount | Monthly feature count     |
-| linkedinUrl     | LinkedIn profile          |
-| profilePic      | Image path                |
-| degrees         | JSON array                |
-| certifications  | JSON array                |
-| licenses        | JSON array                |
-| shortCourses    | JSON array                |
-| employment      | JSON array                |
+| Field                    | Description           |
+| ------------------------ | --------------------- |
+| id                       | Primary key           |
+| linkedinUrl              | LinkedIn profile      |
+| profilePic               | Image URL             |
+| thisMonthAppearanceCount | Monthly feature count |
+| createdAt                | Timestamp             |
+| updatedAt                | Timestamp             |
 
 ---
 
-### Bid Table
+### Bids Table
 
-| Field      | Description |
-| ---------- | ----------- |
-| id         | Primary key |
-| alumniID   | Foreign key |
-| amount     | Bid amount  |
-| created_at | Timestamp   |
-
----
-
-### API Keys Table
-
-| Field      | Description     |
-| ---------- | --------------- |
-| key        | API key         |
-| clientName | Client name     |
-| usageCount | Usage tracking  |
-| revoked    | Revocation flag |
+| Field     | Description |
+| --------- | ----------- |
+| id        | Primary key |
+| alumniID  | Foreign key |
+| amount    | Bid amount  |
+| createdAt | Timestamp   |
 
 ---
 
-### Relationships
+## 🔗 Data Relationships
 
+* One User → One Alumni profile
 * One Alumni → Many Bids
-* One Alumni → Can be featured
-* API keys track external usage
+* Highest bid → Determines featured alumni
 
 ---
 
@@ -253,7 +225,6 @@ http://localhost:3000/api-docs
 * Interactive API testing
 * Request/response examples
 * JWT authentication support
-* Full endpoint coverage
 
 ---
 
@@ -271,11 +242,25 @@ http://localhost:3000/api-docs
 ### Bidding
 
 * `POST /bid/makebid`
+* `PUT /bid/update`
 * `GET /bid/status`
 
 ### Public API
 
 * `GET /alumni/today`
+
+---
+
+## 📦 Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "Winning"
+  }
+}
+```
 
 ---
 
@@ -307,31 +292,29 @@ http://localhost:3000/api-docs
 
 ## 🧠 Key Design Decisions (For Viva)
 
-* **Layered Architecture** → improves maintainability and scalability
+* **Layered Architecture** → improves maintainability
 * **DAO Pattern** → separates database logic
-* **JWT Authentication** → stateless and secure
+* **JWT Authentication** → secure and stateless
 * **bcrypt hashing** → protects passwords
 * **Blind bidding logic** → ensures fairness
-* **JSON fields for profile** → simplifies complex data structures
 
 ---
 
 ## ⚠️ Notes
 
 * This project is designed for **educational purposes**
-* Email sending is simulated (can be extended with real service)
-* SQLite used for simplicity (can be replaced with other DBs)
+* SQLite is used for simplicity and easy setup
 
 ---
 
 ## 🎯 Conclusion
 
-This backend system demonstrates:
+This backend demonstrates:
 
-* Strong security practices
+* Secure authentication practices
 * Clean architecture design
-* Complete API documentation
-* Full implementation of coursework requirements
+* Fully documented API
+* Complete implementation of coursework requirements
 
 ---
 
