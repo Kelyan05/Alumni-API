@@ -1,36 +1,67 @@
-const connection = require('../database/dbconfig')
-const createResponse = require('../utils/response')
+const connection = require('../database/dbconfig');
+const createResponse = require('../utils/response');
 
-class biddao{
-    async create(alumniID,amount){
-        return new Promise(resolve=>{
-            const query = `INSERT INTO bid(alumniID,amount,created_at) VALUES (?,?,datetime('now'))`
-            connection.run(query,[alumniID,amount],function(err){
-                if(err) return resolve(createResponse(false,null,null,'Database error'))
-                resolve(createResponse(true,{bidID:this.lastID},null,null))
-            })
-        })
-    }
+class biddao {
 
-    async getHighestBid(){
-        return new Promise(resolve=>{
-            const query = `SELECT MAX(amount) as highest FROM bid`
-            connection.get(query,[],(err,row)=>{
-                if(err) return resolve(createResponse(false,null,null,'Database error'))
-                resolve(createResponse(true,row.highest||0,null,null))
-            })
-        })
-    }
+  create(alumniID, amount) {
+    return new Promise(resolve => {
+      connection.run(
+        `INSERT INTO bids (alumniID,amount) VALUES (?,?)`,
+        [alumniID, amount],
+        function (err) {
+          if (err) return resolve(createResponse(false, null, null, 'Database error'));
+          resolve(createResponse(true, { bidId: this.lastID }));
+        }
+      );
+    });
+  }
 
-    async getUserHighestBid(alumniID){
-        return new Promise(resolve=>{
-            const query = `SELECT MAX(amount) as highest FROM bid WHERE alumniID=?`
-            connection.get(query,[alumniID],(err,row)=>{
-                if(err) return resolve(createResponse(false,null,null,'Database error'))
-                resolve(createResponse(true,row.highest||0,null,null))
-            })
-        })
-    }
+  updateBid(alumniID, amount) {
+    return new Promise(resolve => {
+      connection.run(
+        `UPDATE bids SET amount=? WHERE alumniID=? AND amount < ?`,
+        [amount, alumniID, amount],
+        function (err) {
+          if (err) return resolve(createResponse(false, null));
+          if (this.changes === 0) return resolve(createResponse(false, null, null, 'Must increase bid'));
+          resolve(createResponse(true));
+        }
+      );
+    });
+  }
+
+  getHighestBid() {
+    return new Promise(resolve => {
+      connection.get(`SELECT MAX(amount) as highest FROM bids`, [], (err, row) => {
+        resolve(createResponse(true, row.highest || 0));
+      });
+    });
+  }
+
+  getWinner() {
+    return new Promise(resolve => {
+      connection.get(
+        `SELECT alumniID FROM bids ORDER BY amount DESC LIMIT 1`,
+        [],
+        (err, row) => {
+          if (!row) return resolve(createResponse(false));
+          resolve(createResponse(true, row));
+        }
+      );
+    });
+  }
+
+  getUserHighestBid(alumniID) {
+    return new Promise(resolve => {
+      connection.get(
+        `SELECT MAX(amount) as highest FROM bids WHERE alumniID=?`,
+        [alumniID],
+        (err, row) => {
+          resolve(createResponse(true, row.highest || 0));
+        }
+      );
+    });
+  }
 }
 
-module.exports = biddao
+module.exports = biddao;
