@@ -17,7 +17,7 @@ const service = new alumniservice()
  *       content:
  *         application/json:
  *           example:
- *             email: student@university.edu
+ *             email: student@university.ac.uk
  *             password: Password123!
  *     responses:
  *       200:
@@ -41,7 +41,7 @@ router.post('/register', async (req,res)=>{
  *       content:
  *         application/json:
  *           example:
- *             email: student@university.edu
+ *             email: student@university.ac.uk
  *             password: Password123!
  *     responses:
  *       200:
